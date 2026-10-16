@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physical Wallet & Ledger</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-slate">
+
+    <div class="wallet-container">
+        <!-- Top Header & Navigation -->
+        <header class="top-header">
+            <div>
+                <h1 class="app-title">BILLFOLD WALLET</h1>
+                <p id="wallet-owner" class="subtitle">PERSONAL & BUSINESS LEDGER</p>
+            </div>
+            <div class="menu-buttons">
+                <button type="button" id="btn-toggle-guide" class="nav-btn">GUIDE</button>
+                <button type="button" id="btn-toggle-theme" class="nav-btn">THEMES</button>
+                <button type="button" id="btn-download-report" class="nav-btn">STATEMENT</button>
+                <button type="button" id="btn-backup" class="nav-btn">BACKUP</button>
+                <label for="file-restore" class="nav-btn label-btn">RESTORE</label>
+                <input type="file" id="file-restore" accept=".json" style="display: none;">
+            </div>
+        </header>
+
+        <!-- Collapsible Welcome Guide -->
+        <section id="panel-guide" class="info-panel hidden">
+            <div class="panel-top">
+                <h3>HOW TO USE YOUR WALLET</h3>
+                <button type="button" id="btn-close-guide" class="small-btn">CLOSE</button>
+            </div>
+            <ul class="guide-list">
+                <li><strong>WALLET POCKETS:</strong> Just like a real wallet, your money is divided into <strong>Cash in Hand</strong>, <strong>Bank / UPI</strong>, and <strong>Business / Vault</strong>.</li>
+                <li><strong>INFLOW & OUTFLOW:</strong> Use the form below to add money (Inflow) or spend money (Outflow). Future dates are locked.</li>
+                <li><strong>PERSONAL & BUSINESS:</strong> Switch between All, Personal, or Business tabs to see exactly where your money goes.</li>
+                <li><strong>STATEMENT & BACKUP:</strong> Click Statement to download a clean text/image report, or Backup to save a file to your phone.</li>
+            </ul>
+        </section>
+
+        <!-- Collapsible Theme & Name Settings -->
+        <section id="panel-theme" class="info-panel hidden">
+            <div class="panel-top">
+                <h3>WALLET CUSTOMIZATION</h3>
+                <button type="button" id="btn-close-theme" class="small-btn">CLOSE</button>
+            </div>
+            <div class="setting-row">
+                <label>WALLET OWNER NAME</label>
+                <div class="inline-input">
+                    <input type="text" id="input-owner-name" placeholder="Enter your name">
+                    <button type="button" id="btn-save-name" class="action-btn">SAVE</button>
+                </div>
+            </div>
+            <div class="setting-row">
+                <label>SELECT WALLET MATERIAL / THEME</label>
+                <div class="theme-buttons">
+                    <button type="button" class="theme-btn" data-theme="theme-slate">DARK SLATE</button>
+                    <button type="button" class="theme-btn" data-theme="theme-forest">FOREST GREEN</button>
+                    <button type="button" class="theme-btn" data-theme="theme-light">CRISP PAPER</button>
+                    <button type="button" class="theme-btn" data-theme="theme-royal">ROYAL NAVY</button>
+                    <button type="button" class="theme-btn" data-theme="theme-leather">ESPRESSO LEATHER</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mode Filter (All / Personal / Business) -->
+        <section class="mode-tabs">
+            <button type="button" class="mode-btn active" data-mode="all">ALL FUNDS</button>
+            <button type="button" class="mode-btn" data-mode="personal">PERSONAL</button>
+            <button type="button" class="mode-btn" data-mode="business">BUSINESS</button>
+        </section>
+
+        <!-- Main Physical Wallet Card -->
+        <section class="main-wallet-card">
+            <div class="total-section">
+                <span class="card-label">TOTAL AVAILABLE BALANCE</span>
+                <h2 id="total-balance" class="big-balance">INR 0.00</h2>
+            </div>
+
+            <!-- 3 Physical Pockets -->
+            <div class="pockets-grid">
+                <div class="pocket-box">
+                    <span class="pocket-name">CASH IN HAND</span>
+                    <strong id="pocket-cash" class="pocket-val">INR 0.00</strong>
+                </div>
+                <div class="pocket-box">
+                    <span class="pocket-name">BANK / UPI</span>
+                    <strong id="pocket-bank" class="pocket-val">INR 0.00</strong>
+                </div>
+                <div class="pocket-box">
+                    <span class="pocket-name">VAULT / DRAWER</span>
+                    <strong id="pocket-vault" class="pocket-val">INR 0.00</strong>
+                </div>
+            </div>
+
+            <!-- Inflow vs Outflow Summary -->
+            <div class="flow-summary">
+                <div class="flow-box inflow-border">
+                    <span class="pocket-name">TOTAL INFLOW (ADDED)</span>
+                    <strong id="total-inflow" class="inflow-text">+ INR 0.00</strong>
+                </div>
+                <div class="flow-box outflow-border">
+                    <span class="pocket-name">TOTAL OUTFLOW (SPENT)</span>
+                    <strong id="total-outflow" class="outflow-text">- INR 0.00</strong>
+                </div>
+            </div>
+
+            <!-- Smart Wallet Status Note -->
+            <div id="wallet-advice" class="advice-strip">
+                Wallet status is balanced. Ready to record transactions.
+            </div>
+        </section>
+
+        <!-- Record Transaction Card -->
+        <section class="card-section">
+            <h3 class="section-heading">ADD OR SPEND MONEY</h3>
+            <form id="tx-form" class="tx-form">
+                <div class="form-grid-2">
+                    <div>
+                        <label>TRANSACTION TYPE</label>
+                        <select id="tx-type" required>
+                            <option value="inflow">INFLOW (MONEY IN)</option>
+                            <option value="outflow">OUTFLOW (MONEY OUT)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>WALLET POCKET</label>
+                        <select id="tx-pocket" required>
+                            <option value="Cash">CASH IN HAND</option>
+                            <option value="Bank">BANK / UPI</option>
+                            <option value="Vault">VAULT / DRAWER</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div>
+                        <label>LEDGER PURPOSE</label>
+                        <select id="tx-purpose" required>
+                            <option value="personal">PERSONAL USE</option>
+                            <option value="business">BUSINESS USE</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>CATEGORY</label>
+                        <select id="tx-category" required>
+                            <option value="Salary / Income">SALARY / INCOME</option>
+                            <option value="Business Sales">BUSINESS SALES</option>
+                            <option value="Food & Groceries">FOOD & GROCERIES</option>
+                            <option value="Stock / Inventory">STOCK / INVENTORY</option>
+                            <option value="Bills & Utilities">BILLS & UTILITIES</option>
+                            <option value="Travel & Fuel">TRAVEL & FUEL</option>
+                            <option value="Other">OTHER</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div>
+                        <label>AMOUNT (INR)</label>
+                        <input type="number" id="tx-amount" placeholder="e.g. 500" min="0.01" step="0.01" required>
+                    </div>
+                    <div>
+                        <label>DATE (FUTURE LOCKED)</label>
+                        <input type="date" id="tx-date" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label>NOTE / DESCRIPTION</label>
+                    <input type="text" id="tx-note" placeholder="Write what this money was for..." required autocomplete="off">
+                </div>
+
+                <button type="submit" class="submit-btn">SAVE TO WALLET</button>
+            </form>
+        </section>
+
+        <!-- History & Filters Card -->
+        <section class="card-section">
+            <div class="panel-top">
+                <h3 class="section-heading">WALLET HISTORY</h3>
+                <span id="history-count" class="count-tag">0 ENTRIES</span>
+            </div>
+
+            <div class="filter-bar">
+                <input type="search" id="search-box" placeholder="Search note or category...">
+                <div class="filter-row-3">
+                    <select id="filter-flow">
+                        <option value="all">ALL FLOWS</option>
+                        <option value="inflow">ONLY INFLOW</option>
+                        <option value="outflow">ONLY OUTFLOW</option>
+                    </select>
+                    <select id="filter-pocket">
+                        <option value="all">ALL POCKETS</option>
+                        <option value="Cash">CASH</option>
+                        <option value="Bank">BANK / UPI</option>
+                        <option value="Vault">VAULT</option>
+                    </select>
+                    <select id="filter-sort">
+                        <option value="newest">NEWEST FIRST</option>
+                        <option value="highest">HIGHEST AMOUNT</option>
+                        <option value="lowest">LOWEST AMOUNT</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="history-list" class="history-list"></div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+                  </html>
