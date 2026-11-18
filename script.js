@@ -7,15 +7,14 @@ function getTodayString() {
     return year + "-" + month + "-" + day;
 }
 
-// Default Starter Wallet Data
+// Default Starter Wallet Data (Privacy protected - Generic names only)
 var starterTransactions = [
-    { id: 101, type: "inflow", pocket: "Bank", purpose: "business", category: "Business Sales", amount: 25000, date: getTodayString(), note: "Client Order Payment" },
-    { id: 102, type: "inflow", pocket: "Cash", purpose: "personal", category: "Salary / Income", amount: 8000, date: getTodayString(), note: "Monthly Teaching Fees" },
-    { id: 103, type: "outflow", pocket: "Cash", purpose: "personal", category: "Food & Groceries", amount: 1200, date: getTodayString(), note: "Market Supplies" },
-    { id: 104, type: "outflow", pocket: "Bank", purpose: "business", category: "Stock / Inventory", amount: 6500, date: getTodayString(), note: "Shop Stock Refill" }
+    { id: 101, type: "inflow", pocket: "Bank", purpose: "business", category: "Business Sales", amount: 25000, date: getTodayString(), note: "Client Payment Received" },
+    { id: 102, type: "inflow", pocket: "Cash", purpose: "personal", category: "Salary / Income", amount: 8000, date: getTodayString(), note: "Service Fee Collected" },
+    { id: 103, type: "outflow", pocket: "Cash", purpose: "personal", category: "Food & Groceries", amount: 1200, date: getTodayString(), note: "General Supplies" },
+    { id: 104, type: "outflow", pocket: "Bank", purpose: "business", category: "Stock / Inventory", amount: 6500, date: getTodayString(), note: "Inventory Restock" }
 ];
 
-// Load saved data safely
 var walletData = [];
 try {
     var saved = localStorage.getItem("billfoldWalletData");
@@ -25,11 +24,10 @@ try {
     walletData = starterTransactions;
 }
 
-var currentMode = "all"; // 'all', 'personal', 'business'
+var currentMode = "all"; 
 var ownerName = localStorage.getItem("billfoldOwner") || "PERSONAL & BUSINESS LEDGER";
 var activeTheme = localStorage.getItem("billfoldTheme") || "theme-slate";
 
-// DOM Elements
 var ownerText = document.getElementById("wallet-owner");
 var dateInput = document.getElementById("tx-date");
 var totalBalanceEl = document.getElementById("total-balance");
@@ -45,26 +43,22 @@ var historyCountEl = document.getElementById("history-count");
 // Lock Future Dates on Calendar
 function lockFutureDates() {
     var today = getTodayString();
-    dateInput.setAttribute("max", today);
-    dateInput.value = today;
+    if(dateInput) {
+        dateInput.setAttribute("max", today);
+        dateInput.value = today;
+    }
 }
 
-// Format Currency
 function formatINR(num) {
     var n = Number(num) || 0;
     return "INR " + n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Save to LocalStorage
 function saveWallet() {
-    try {
-        localStorage.setItem("billfoldWalletData", JSON.stringify(walletData));
-    } catch (e) {}
+    try { localStorage.setItem("billfoldWalletData", JSON.stringify(walletData)); } catch (e) {}
 }
 
-// Main Render Function
 function renderWallet() {
-    // 1. Filter by Mode (All, Personal, Business)
     var modeList = walletData.filter(function(item) {
         if (currentMode === "all") return true;
         return item.purpose === currentMode;
@@ -76,10 +70,7 @@ function renderWallet() {
     modeList.forEach(function(tx) {
         var amt = Number(tx.amount) || 0;
         var sign = tx.type === "inflow" ? 1 : -1;
-
-        if (tx.type === "inflow") sumInflow += amt;
-        else sumOutflow += amt;
-
+        if (tx.type === "inflow") sumInflow += amt; else sumOutflow += amt;
         if (tx.pocket === "Cash") cashTotal += (amt * sign);
         else if (tx.pocket === "Bank") bankTotal += (amt * sign);
         else if (tx.pocket === "Vault") vaultTotal += (amt * sign);
@@ -87,27 +78,25 @@ function renderWallet() {
 
     var netBalance = sumInflow - sumOutflow;
 
-    totalBalanceEl.textContent = formatINR(netBalance);
-    pocketCashEl.textContent = formatINR(cashTotal);
-    pocketBankEl.textContent = formatINR(bankTotal);
-    pocketVaultEl.textContent = formatINR(vaultTotal);
-    totalInflowEl.textContent = "+ " + formatINR(sumInflow);
-    totalOutflowEl.textContent = "- " + formatINR(sumOutflow);
+    if(totalBalanceEl) totalBalanceEl.textContent = formatINR(netBalance);
+    if(pocketCashEl) pocketCashEl.textContent = formatINR(cashTotal);
+    if(pocketBankEl) pocketBankEl.textContent = formatINR(bankTotal);
+    if(pocketVaultEl) pocketVaultEl.textContent = formatINR(vaultTotal);
+    if(totalInflowEl) totalInflowEl.textContent = "+ " + formatINR(sumInflow);
+    if(totalOutflowEl) totalOutflowEl.textContent = "- " + formatINR(sumOutflow);
 
-    // Update Advice Strip
     if (sumOutflow > sumInflow) {
-        adviceEl.textContent = "ALERT: Outflow exceeds Inflow by " + formatINR(sumOutflow - sumInflow) + ". Control non-essential spending.";
+        adviceEl.textContent = "ALERT: Outflow exceeds Inflow by " + formatINR(sumOutflow - sumInflow) + ".";
     } else if (sumInflow > 0) {
         var savedPct = Math.round(((sumInflow - sumOutflow) / sumInflow) * 100);
-        adviceEl.textContent = "HEALTHY STATUS: You are retaining " + savedPct + "% of your total inflows in this view.";
+        adviceEl.textContent = "HEALTHY STATUS: Retaining " + savedPct + "% of total inflows.";
     } else {
-        adviceEl.textContent = "No transactions recorded in this view yet.";
+        adviceEl.textContent = "No transactions recorded yet.";
     }
 
     renderHistoryList(modeList);
 }
 
-// Render Filtered Transaction History
 function renderHistoryList(modeList) {
     var searchVal = document.getElementById("search-box").value.trim().toLowerCase();
     var flowFilter = document.getElementById("filter-flow").value;
@@ -128,7 +117,8 @@ function renderHistoryList(modeList) {
         return 0;
     });
 
-    historyCountEl.textContent = filtered.length + " ENTRIES";
+    if(historyCountEl) historyCountEl.textContent = filtered.length + " ENTRIES";
+    if(!historyListEl) return;
     historyListEl.innerHTML = "";
 
     if (filtered.length === 0) {
@@ -146,12 +136,12 @@ function renderHistoryList(modeList) {
                 '<span class="type-tag ' + (isIn ? 'tag-in' : 'tag-out') + '">' + (isIn ? 'IN' : 'OUT') + '</span>' +
                 '<div>' +
                     '<div class="item-note">' + tx.note + '</div>' +
-                    '<div class="item-sub">' + tx.date + ' | POCKET: ' + tx.pocket.toUpperCase() + ' | ' + tx.purpose.toUpperCase() + ' | ' + tx.category + '</div>' +
+                    '<div class="item-sub">' + tx.date + ' | POCKET: ' + tx.pocket.toUpperCase() + ' | ' + tx.purpose.toUpperCase() + '</div>' +
                 '</div>' +
             '</div>' +
             '<div class="item-right">' +
                 '<strong class="' + (isIn ? 'inflow-text' : 'outflow-text') + '">' + (isIn ? '+' : '-') + ' ' + formatINR(tx.amount) + '</strong>' +
-                '<button type="button" class="delete-btn" data-id="' + tx.id + '">DELETE</button>' +
+                '<button type="button" class="delete-btn" data-id="' + tx.id + '">DEL</button>' +
             '</div>';
 
         row.querySelector(".delete-btn").addEventListener("click", function() {
@@ -165,35 +155,38 @@ function renderHistoryList(modeList) {
 }
 
 // Add New Transaction
-document.getElementById("tx-form").addEventListener("submit", function(e) {
-    e.preventDefault();
-    var chosenDate = dateInput.value;
-    if (chosenDate > getTodayString()) {
-        alert("Future dates are disabled.");
-        return;
-    }
+var form = document.getElementById("tx-form");
+if(form) {
+    form.addEventListener("submit", function(e) {
+        e.preventDefault();
+        var chosenDate = dateInput.value;
+        if (chosenDate > getTodayString()) {
+            alert("Future dates are disabled.");
+            return;
+        }
 
-    var newEntry = {
-        id: Date.now(),
-        type: document.getElementById("tx-type").value,
-        pocket: document.getElementById("tx-pocket").value,
-        purpose: document.getElementById("tx-purpose").value,
-        category: document.getElementById("tx-category").value,
-        amount: parseFloat(document.getElementById("tx-amount").value),
-        date: chosenDate,
-        note: document.getElementById("tx-note").value.trim()
-    };
+        var newEntry = {
+            id: Date.now(),
+            type: document.getElementById("tx-type").value,
+            pocket: document.getElementById("tx-pocket").value,
+            purpose: document.getElementById("tx-purpose").value,
+            category: document.getElementById("tx-category").value,
+            amount: parseFloat(document.getElementById("tx-amount").value),
+            date: chosenDate,
+            note: document.getElementById("tx-note").value.trim()
+        };
 
-    walletData.unshift(newEntry);
-    saveWallet();
-    renderWallet();
+        walletData.unshift(newEntry);
+        saveWallet();
+        renderWallet();
 
-    document.getElementById("tx-amount").value = "";
-    document.getElementById("tx-note").value = "";
-    lockFutureDates();
-});
+        document.getElementById("tx-amount").value = "";
+        document.getElementById("tx-note").value = "";
+        lockFutureDates();
+    });
+}
 
-// Mode Switching (All / Personal / Business)
+// Mode Switching
 document.querySelectorAll(".mode-btn").forEach(function(btn) {
     btn.addEventListener("click", function(e) {
         document.querySelectorAll(".mode-btn").forEach(function(b) { b.classList.remove("active"); });
@@ -203,27 +196,20 @@ document.querySelectorAll(".mode-btn").forEach(function(btn) {
     });
 });
 
-// Guide & Theme Panels
+// Panels
 var guidePanel = document.getElementById("panel-guide");
 var themePanel = document.getElementById("panel-theme");
 
 document.getElementById("btn-toggle-guide").addEventListener("click", function() {
-    guidePanel.classList.toggle("hidden");
-    themePanel.classList.add("hidden");
+    guidePanel.classList.toggle("hidden"); themePanel.classList.add("hidden");
 });
-document.getElementById("btn-close-guide").addEventListener("click", function() {
-    guidePanel.classList.add("hidden");
-});
+document.getElementById("btn-close-guide").addEventListener("click", function() { guidePanel.classList.add("hidden"); });
 
 document.getElementById("btn-toggle-theme").addEventListener("click", function() {
-    themePanel.classList.toggle("hidden");
-    guidePanel.classList.add("hidden");
+    themePanel.classList.toggle("hidden"); guidePanel.classList.add("hidden");
 });
-document.getElementById("btn-close-theme").addEventListener("click", function() {
-    themePanel.classList.add("hidden");
-});
+document.getElementById("btn-close-theme").addEventListener("click", function() { themePanel.classList.add("hidden"); });
 
-// Save Owner Name
 document.getElementById("btn-save-name").addEventListener("click", function() {
     var val = document.getElementById("input-owner-name").value.trim();
     ownerName = val ? val.toUpperCase() + " // WALLET LEDGER" : "PERSONAL & BUSINESS LEDGER";
@@ -232,7 +218,6 @@ document.getElementById("btn-save-name").addEventListener("click", function() {
     themePanel.classList.add("hidden");
 });
 
-// Switch Themes
 document.querySelectorAll(".theme-btn").forEach(function(btn) {
     btn.addEventListener("click", function(e) {
         activeTheme = e.target.getAttribute("data-theme");
@@ -241,113 +226,37 @@ document.querySelectorAll(".theme-btn").forEach(function(btn) {
     });
 });
 
-// Filter Listeners
+// Filters
 document.getElementById("search-box").addEventListener("input", renderWallet);
 document.getElementById("filter-flow").addEventListener("change", renderWallet);
 document.getElementById("filter-pocket").addEventListener("change", renderWallet);
 document.getElementById("filter-sort").addEventListener("change", renderWallet);
 
-// Download High-Quality PNG Statement
-document.getElementById("btn-download-report").addEventListener("click", function() {
-    var canvas = document.createElement("canvas");
-    canvas.width = 1000;
-    canvas.height = 1200;
-    var ctx = canvas.getContext("2d");
-
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(0, 0, 1000, 1200);
-
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 36px sans-serif";
-    ctx.fillText("BILLFOLD WALLET STATEMENT", 50, 70);
-
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "bold 20px sans-serif";
-    ctx.fillText(ownerName + " | DATE: " + getTodayString(), 50, 110);
-
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(50, 140, 900, 180);
-
-    ctx.fillStyle = "#f8fafc";
-    ctx.font = "bold 40px sans-serif";
-    ctx.fillText("TOTAL BALANCE: " + totalBalanceEl.textContent, 80, 205);
-
-    ctx.font = "bold 22px sans-serif";
-    ctx.fillStyle = "#22c55e";
-    ctx.fillText("INFLOW: " + totalInflowEl.textContent, 80, 260);
-    ctx.fillStyle = "#f43f5e";
-    ctx.fillText("OUTFLOW: " + totalOutflowEl.textContent, 500, 260);
-
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "bold 20px sans-serif";
-    ctx.fillText("CASH: " + pocketCashEl.textContent + "  |  BANK: " + pocketBankEl.textContent + "  |  VAULT: " + pocketVaultEl.textContent, 80, 300);
-
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 24px sans-serif";
-    ctx.fillText("RECENT TRANSACTIONS", 50, 370);
-
-    var y = 400;
-    walletData.slice(0, 12).forEach(function(tx) {
-        ctx.fillStyle = "#1e293b";
-        ctx.fillRect(50, y, 900, 52);
-
-        ctx.fillStyle = tx.type === "inflow" ? "#22c55e" : "#f43f5e";
-        ctx.font = "bold 20px sans-serif";
-        ctx.fillText(tx.type === "inflow" ? "[IN]" : "[OUT]", 70, y + 33);
-
-        ctx.fillStyle = "#f8fafc";
-        ctx.fillText(tx.note.slice(0, 30), 150, y + 33);
-
-        ctx.fillStyle = "#94a3b8";
-        ctx.font = "18px sans-serif";
-        ctx.fillText(tx.date + " | " + tx.pocket, 540, y + 33);
-
-        ctx.fillStyle = tx.type === "inflow" ? "#22c55e" : "#f43f5e";
-        ctx.font = "bold 20px sans-serif";
-        ctx.fillText((tx.type === "inflow" ? "+" : "-") + formatINR(tx.amount), 740, y + 33);
-
-        y += 62;
-    });
-
-    var link = document.createElement("a");
-    link.download = "Wallet-Statement-" + getTodayString() + ".png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-});
-
-// Backup JSON
-document.getElementById("btn-backup").addEventListener("click", function() {
-    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(walletData, null, 2));
-    var a = document.createElement("a");
-    a.href = dataStr;
-    a.download = "wallet_backup_" + getTodayString() + ".json";
-    a.click();
-});
-
-// Restore JSON
-document.getElementById("file-restore").addEventListener("change", function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-        try {
-            var parsed = JSON.parse(evt.target.result);
-            if (Array.isArray(parsed)) {
-                walletData = parsed;
-                saveWallet();
-                renderWallet();
-                alert("Wallet data restored.");
-            }
-        } catch (err) {
-            alert("Invalid backup file.");
-        }
-    };
-    reader.readAsText(file);
-});
-
-// Initialize App Immediately
+// Init
 document.body.className = activeTheme;
 ownerText.textContent = ownerName;
 lockFutureDates();
 renderWallet();
-                             
+
+// --- PWA INSTALL HANDLER ---
+var deferredPrompt;
+var installBtn = document.getElementById("btn-install-app");
+
+window.addEventListener("beforeinstallprompt", function(e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.classList.remove("hidden");
+});
+
+installBtn.addEventListener("click", function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function() {
+        deferredPrompt = null;
+        installBtn.classList.add("hidden");
+    });
+});
+
+window.addEventListener("appinstalled", function() {
+    installBtn.classList.add("hidden");
+});
